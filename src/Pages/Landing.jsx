@@ -29,7 +29,6 @@ function Navbar() {
         backdropFilter: scrolled ? 'blur(20px)' : 'none',
       }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {/* Logo */}
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
               width: 38, height: 38, borderRadius: 10,
@@ -47,9 +46,7 @@ function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop nav */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 32, ['@media(max-width:768px)']: { display: 'none' } }}
-            className="desktop-nav">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 32 }} className="desktop-nav">
             {links.map(l => (
               <a key={l} href={`#${l.toLowerCase()}`} style={{
                 fontSize: 14, fontWeight: 500, color: 'var(--text-2)',
@@ -61,7 +58,6 @@ function Navbar() {
             ))}
           </div>
 
-          {/* CTA */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Link to="/login" className="btn btn-outline btn-sm nav-cta-links" style={{ display: 'flex' }}>Sign In</Link>
             <Link to="/register" className="btn btn-gold btn-sm nav-cta-links" style={{ display: 'flex' }}>
@@ -78,7 +74,6 @@ function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile nav */}
       {mobileOpen && (
         <div className="offcanvas-overlay" onClick={() => setMobileOpen(false)}>
           <div style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: 280, background: 'var(--navy-2)', borderRight: '1px solid var(--border)', zIndex: 201, animation: 'slideRight .3s cubic-bezier(.16,1,.3,1)', padding: 24 }} onClick={e => e.stopPropagation()}>
@@ -116,38 +111,40 @@ function Hero() {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'var(--navy)',
     }}>
-      {/* Background elements */}
+
+      {/* ── Background photo ── */}
       <div style={{
         position: 'absolute', inset: 0,
-        backgroundImage: 'radial-gradient(ellipse 80% 60% at 60% 40%, rgba(201,168,76,.08) 0%, transparent 70%)',
+        backgroundImage: 'url(https://services.travo.ng/wp-content/uploads/2025/05/iStock-1420043504-1-1024x671.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }} />
-      {/* Grid */}
+
+      {/* Dark overlay — dims the photo so text stays crisp */}
       <div style={{
-        position: 'absolute', inset: 0, opacity: .3,
-        backgroundImage: 'linear-gradient(rgba(201,168,76,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.06) 1px,transparent 1px)',
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(135deg, rgba(11,17,32,.50) 0%, rgba(11,17,32,.35) 50%, rgba(11,17,32,.45) 100%)',
+      }} />
+
+      {/* Radial gold glow on top of everything */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: 'radial-gradient(ellipse 80% 60% at 60% 40%, rgba(201,168,76,.07) 0%, transparent 70%)',
+      }} />
+
+      {/* Subtle grid */}
+      <div style={{
+        position: 'absolute', inset: 0, opacity: .08,
+        backgroundImage: 'linear-gradient(rgba(201,168,76,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.08) 1px,transparent 1px)',
         backgroundSize: '60px 60px',
       }} />
+
       {/* Diagonal accent line */}
       <div style={{
         position: 'absolute', top: 0, right: '20%', bottom: 0, width: 1,
-        background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,.2), transparent)',
+        background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,.15), transparent)',
       }} />
-
-      {/* Floating package icons */}
-      {[
-        { top: '18%', left: '8%', delay: 0, size: 40 },
-        { top: '65%', left: '5%', delay: .8, size: 28 },
-        { top: '30%', right: '6%', delay: .4, size: 34 },
-        { top: '72%', right: '10%', delay: 1.2, size: 24 },
-      ].map((p, i) => (
-        <div key={i} style={{
-          position: 'absolute', ...p,
-          animation: `fadeUp 1s ${p.delay}s both`,
-          opacity: .2,
-        }}>
-          <Package size={p.size} color="var(--gold)" />
-        </div>
-      ))}
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(90px,12vw,120px) clamp(16px,4vw,32px) clamp(60px,8vw,80px)', textAlign: 'center', position: 'relative' }}>
         {/* Eyebrow */}
@@ -460,7 +457,6 @@ function About() {
           </div>
         </div>
 
-        {/* Visual panel */}
         <div style={{ position: 'relative' }}>
           <div style={{
             borderRadius: 'var(--radius-xl)',
@@ -483,7 +479,6 @@ function About() {
             <p style={{ color: 'var(--text-2)', fontSize: 14, fontWeight: 300, maxWidth: 260, margin: '0 auto' }}>
               Our drivers are GPS-tracked in real-time so you always know exactly where your delivery is.
             </p>
-
             <div style={{ marginTop: 32, padding: 16, background: 'rgba(0,0,0,.3)', borderRadius: 12, border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite' }} />
