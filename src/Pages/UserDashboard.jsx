@@ -10,11 +10,77 @@ import toast from 'react-hot-toast';
 
 const TABS = ['Overview', 'Profile'];
 
+function DashboardSkeleton() {
+  const pulse = {
+    background: 'linear-gradient(90deg, var(--navy-3) 25%, rgba(255,255,255,.04) 50%, var(--navy-3) 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.4s infinite',
+    borderRadius: 10,
+  };
+  return (
+    <>
+      <style>{`
+        @keyframes shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
+
+      {/* Header skeleton */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ ...pulse, height: 36, width: 260, marginBottom: 10 }} />
+        <div style={{ ...pulse, height: 18, width: 180 }} />
+      </div>
+
+      {/* Stats skeleton */}
+      <div className="resp-grid-4" style={{ marginBottom: 28 }}>
+        {[1,2,3,4].map(i => (
+          <div key={i} className="card" style={{ padding: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ ...pulse, height: 12, width: 100, marginBottom: 12 }} />
+                <div style={{ ...pulse, height: 38, width: 60 }} />
+              </div>
+              <div style={{ ...pulse, width: 38, height: 38, borderRadius: 10 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Banner skeleton */}
+      <div style={{ ...pulse, height: 90, marginBottom: 28, borderRadius: 'var(--radius-lg)' }} />
+
+      {/* Orders skeleton */}
+      <div className="card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ ...pulse, height: 20, width: 130 }} />
+          <div style={{ ...pulse, height: 20, width: 70 }} />
+        </div>
+        {[1,2,3,4].map(i => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 13, flex: 1 }}>
+              <div style={{ ...pulse, width: 38, height: 38, borderRadius: 9, flexShrink: 0 }} />
+              <div>
+                <div style={{ ...pulse, height: 14, width: 100, marginBottom: 8 }} />
+                <div style={{ ...pulse, height: 12, width: 140 }} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+              <div style={{ ...pulse, height: 14, width: 50 }} />
+              <div style={{ ...pulse, height: 22, width: 70, borderRadius: 20 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export default function UserDashboard() {
-  const { user, setUser } = useAuth();
+  const { user, loading: authLoading, setUser } = useAuth();
   const [tab, setTab] = useState('Overview');
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(true);
 
   // Profile state
   const [profileForm, setProfileForm] = useState({ name: '', phone: '', address: '', bio: '' });
@@ -27,7 +93,7 @@ export default function UserDashboard() {
     api.get('/orders/my-orders')
       .then(r => { const d = r.data; setOrders(Array.isArray(d) ? d : (d?.orders || [])); })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => setOrdersLoading(false));
   }, []);
 
   useEffect(() => {
@@ -37,10 +103,13 @@ export default function UserDashboard() {
     }
   }, [user]);
 
+  // Show skeleton while auth is resolving or orders are loading
+  if (authLoading || ordersLoading) return <DashboardSkeleton />;
+
   const stats = {
-    total: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    transit: orders.filter(o => ['picked_up', 'in_transit', 'out_for_delivery'].includes(o.status)).length,
+    total:     orders.length,
+    pending:   orders.filter(o => o.status === 'pending').length,
+    transit:   orders.filter(o => ['picked_up', 'in_transit', 'out_for_delivery'].includes(o.status)).length,
     delivered: orders.filter(o => o.status === 'delivered').length,
   };
 
@@ -143,9 +212,7 @@ export default function UserDashboard() {
               <h3 style={{ fontWeight: 700, fontSize: 16 }}>Recent Orders</h3>
               <Link to="/orders" className="btn btn-ghost btn-sm">View all <ArrowRight size={14} /></Link>
             </div>
-            {loading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><div className="spinner" style={{ width: 28, height: 28 }} /></div>
-            ) : orders.length === 0 ? (
+            {orders.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-3)' }}>
                 <Package size={44} style={{ opacity: .15, margin: '0 auto 14px', display: 'block' }} />
                 <div style={{ fontSize: 15, marginBottom: 8 }}>No orders yet</div>
@@ -224,13 +291,12 @@ export default function UserDashboard() {
                 <label>Bio <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>(optional)</span></label>
                 <textarea value={profileForm.bio} onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))} placeholder="A short note about yourself..." rows={3} style={{ resize: 'vertical' }} />
               </div>
-
               <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
                 <button className="btn btn-gold" onClick={handleSaveProfile} disabled={saving} style={{ flex: 1, justifyContent: 'center' }}>
                   {saving ? <span className="spinner" style={{ width: 15, height: 15 }} /> : <><Save size={14} /> Save Changes</>}
                 </button>
                 {avatarFile && (
-                  <button className="btn btn-ghost" onClick={() => { setAvatarFile(null); setAvatarPreview(user?.avatar || null); }} style={{ flexShrink: 0 }}>
+                  <button className="btn btn-ghost" onClick={() => { setAvatarFile(null); setAvatarPreview(user?.avatar || null); }}>
                     <X size={14} /> Discard
                   </button>
                 )}

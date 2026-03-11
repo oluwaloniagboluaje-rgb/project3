@@ -6,13 +6,14 @@ import { SocketProvider } from './context/SocketContext';
 import DashLayout from './Components/DashLayout';
 import LandingPage from './Pages/Landing';
 import AuthPage from './Pages/AuthPage';
-import ForgotPassword from './Pages/ForgotPassword';
+import ForgotPassword from './Pages/ForgotPAssword';
 import UserDashboard from './Pages/UserDashboard';
 import PlaceOrder from './Pages/PlaceOrder';
 import { OrdersList, OrderDetail } from './Pages/Order';
 import TrackOrder from './Pages/TrackOrder';
 import DriverDashboard from './Pages/DriverDashboard';
 import AdminDashboard from './Pages/AdminDashboard';
+import AdminRevenue from './Pages/AdminRevenue';
 
 
 function Guard({ children, role }) {
@@ -40,6 +41,8 @@ function AppRoutes() {
       <Route path="/login" element={user ? <Navigate to={user.role==='admin'?'/admin':user.role==='driver'?'/driver':'/dashboard'} /> : <AuthPage mode="login" />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <AuthPage mode="register" />} />
       <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />} />
+       
+
 
       {/* User */}
       <Route path="/dashboard" element={<Guard role="user"><DashLayout><UserDashboard /></DashLayout></Guard>} />
@@ -59,6 +62,9 @@ function AppRoutes() {
       <Route path="/admin/drivers" element={<Guard role="admin"><DashLayout><AdminDashboard /></DashLayout></Guard>} />
       <Route path="/admin/users" element={<Guard role="admin"><DashLayout><AdminDashboard /></DashLayout></Guard>} />
       <Route path="/admin/map" element={<Guard role="admin"><DashLayout><AdminDashboard /></DashLayout></Guard>} />
+      <Route path="/admin/revenue" element={<Guard role="admin"><DashLayout><AdminRevenue/></DashLayout></Guard>} />
+
+
 
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

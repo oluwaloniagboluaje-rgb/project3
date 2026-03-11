@@ -11,25 +11,102 @@ import toast from 'react-hot-toast';
 const HISTORY_PAGE_SIZE = 5;
 const TABS = ['Dashboard', 'Profile'];
 
+// ── Shimmer skeleton ──────────────────────────────────────────────
+function DashboardSkeleton() {
+  const pulse = {
+    background: 'linear-gradient(90deg, var(--navy-3) 25%, rgba(255,255,255,.04) 50%, var(--navy-3) 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.4s infinite',
+    borderRadius: 10,
+  };
+  return (
+    <>
+      <style>{`
+        @keyframes shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
+
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ ...pulse, height: 34, width: 240, marginBottom: 10 }} />
+        <div style={{ ...pulse, height: 16, width: 200 }} />
+      </div>
+
+      {/* Stats grid */}
+      <div className="resp-grid-3plus" style={{ marginBottom: 24 }}>
+        {[1,2,3,4].map(i => (
+          <div key={i} className="card" style={{ padding: 20 }}>
+            <div style={{ ...pulse, height: 12, width: 90, marginBottom: 14 }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ ...pulse, height: 38, width: 56 }} />
+              <div style={{ ...pulse, width: 38, height: 38, borderRadius: 10 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Active deliveries card */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div style={{ ...pulse, height: 18, width: 160, marginBottom: 20 }} />
+        {[1,2].map(i => (
+          <div key={i} style={{ background: 'var(--navy-3)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div>
+                <div style={{ ...pulse, height: 16, width: 120, marginBottom: 10 }} />
+                <div style={{ ...pulse, height: 13, width: 160, marginBottom: 8 }} />
+                <div style={{ ...pulse, height: 12, width: 100 }} />
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ ...pulse, height: 22, width: 70, borderRadius: 20, marginBottom: 10 }} />
+                <div style={{ ...pulse, height: 16, width: 50 }} />
+              </div>
+            </div>
+            <div style={{ ...pulse, height: 32, width: 130, borderRadius: 8 }} />
+          </div>
+        ))}
+      </div>
+
+      {/* History card */}
+      <div className="card">
+        <div style={{ ...pulse, height: 18, width: 140, marginBottom: 20 }} />
+        {[1,2,3,4,5].map(i => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, padding: '14px 0', borderBottom: i < 5 ? '1px solid rgba(255,255,255,.04)' : 'none' }}>
+            <div>
+              <div style={{ ...pulse, height: 14, width: 180, marginBottom: 8 }} />
+              <div style={{ ...pulse, height: 12, width: 140 }} />
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ ...pulse, height: 14, width: 50, marginBottom: 6 }} />
+              <div style={{ ...pulse, height: 11, width: 70 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export default function DriverDashboard() {
-  const { user, setUser } = useAuth();
+  const { user, loading: authLoading, setUser } = useAuth();
   const { emitLocation } = useSocket();
   const [tab, setTab] = useState('Dashboard');
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
   const [myLocation, setMyLocation] = useState(null);
   const [updating, setUpdating] = useState({});
   const watchRef = useRef(null);
 
-  // History state
+  // History
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyPage, setHistoryPage] = useState(1);
   const [totalDelivered, setTotalDelivered] = useState(0);
   const [historyTotal, setHistoryTotal] = useState(0);
 
-  // Profile state
+  // Profile
   const [profileForm, setProfileForm] = useState({ name: '', phone: '', bio: '' });
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -40,7 +117,7 @@ export default function DriverDashboard() {
     api.get('/orders/driver/assigned')
       .then(r => { const d = r.data; setOrders(Array.isArray(d) ? d : (d?.orders || [])); })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => setOrdersLoading(false));
     return () => { if (watchRef.current) navigator.geolocation.clearWatch(watchRef.current); };
   }, []);
 
@@ -63,6 +140,9 @@ export default function DriverDashboard() {
       setAvatarPreview(user.avatar || null);
     }
   }, [user]);
+
+  // Show skeleton while auth resolving OR initial data loading
+  if (authLoading || ordersLoading || historyLoading) return <DashboardSkeleton />;
 
   const active = orders.filter(o => !['delivered', 'cancelled'].includes(o.status));
   const historyPages = Math.ceil(historyTotal / HISTORY_PAGE_SIZE);
@@ -127,6 +207,7 @@ export default function DriverDashboard() {
 
   return (
     <div className="fade-up">
+      {/* Header */}
       <div style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 'clamp(22px,3vw,30px)', fontWeight: 800 }}>Driver Dashboard</h1>
@@ -163,6 +244,8 @@ export default function DriverDashboard() {
                 </div>
               </div>
             ))}
+
+            {/* Location sharing card */}
             <div className="card" style={{ padding: 20, background: sharing ? 'rgba(34,197,94,.06)' : 'var(--navy-2)', border: `1px solid ${sharing ? 'rgba(34,197,94,.3)' : 'var(--border)'}` }}>
               <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 4 }}>Location Sharing</div>
               <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, color: sharing ? 'var(--green)' : 'var(--text-3)' }}>
@@ -174,11 +257,10 @@ export default function DriverDashboard() {
             </div>
           </div>
 
+          {/* Active deliveries */}
           <div className="card" style={{ marginBottom: 16 }}>
             <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Active Deliveries</h3>
-            {loading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><div className="spinner" /></div>
-            ) : active.length === 0 ? (
+            {active.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 36, color: 'var(--text-3)' }}>
                 <Truck size={40} style={{ opacity: .15, margin: '0 auto 12px', display: 'block' }} />
                 <div>No active deliveries — check back soon.</div>
@@ -206,6 +288,7 @@ export default function DriverDashboard() {
             ))}
           </div>
 
+          {/* Delivery History */}
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h3 style={{ fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -213,9 +296,7 @@ export default function DriverDashboard() {
               </h3>
               {historyTotal > 0 && <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{historyTotal} total</span>}
             </div>
-            {historyLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><div className="spinner" /></div>
-            ) : history.length === 0 ? (
+            {history.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 36, color: 'var(--text-3)' }}>
                 <History size={36} style={{ opacity: .12, margin: '0 auto 12px', display: 'block' }} />
                 <div style={{ fontSize: 14 }}>No completed deliveries yet.</div>
@@ -266,7 +347,6 @@ export default function DriverDashboard() {
       {tab === 'Profile' && (
         <div style={{ maxWidth: 560 }}>
           <div className="card" style={{ padding: 28 }}>
-            {/* Avatar + stats */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid var(--border)' }}>
               <div style={{ position: 'relative', flexShrink: 0 }}>
                 <div style={{ width: 80, height: 80, borderRadius: '50%', border: '3px solid rgba(201,168,76,.4)', overflow: 'hidden', background: 'var(--navy-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -295,7 +375,7 @@ export default function DriverDashboard() {
               </div>
             </div>
 
-            {/* Vehicle info (read-only) */}
+            {/* Vehicle info */}
             <div style={{ background: 'var(--navy-3)', borderRadius: 10, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)' }}>
               <div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Vehicle</div>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
